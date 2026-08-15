@@ -8,7 +8,7 @@ from uuid import uuid4
 import time
 import logging
 
-from app.api.router import api_router
+from api.routes.auth import router
 from core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting API...")
+
+    # CRIAR TODA A CONEXÃO COM OS BANCOS DE DADOS
 
     # Inicialização:
     # - banco
@@ -32,21 +34,25 @@ async def lifespan(app: FastAPI):
     # - fechar conexões
     # - liberar recursos
 
+
+# Serviço de API
 app = FastAPI(
-    title="API-IA",
-    version="1.0.0",
-    description="API para integração com servidores de Inteligência Artificial",
-    lifespan=lifespan,
+    title="API-IA", # Nome do serviço
+    version="1.0.0", # Versão do Serviço
+    description="API para integração com servidores de Inteligência Artificial", # Descrição
+    lifespan=lifespan, # Execução de código ao iniciar
     docs_url="/docs" if settings.DEBUG else False,
     redoc_url="/redoc" if settings.DEBUG else False,
 )
 
+
+# CORS: Controla quem faz as requisições para a API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["GET", "POST"],
-    allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
+    allow_credentials=True, # Permite carregar credenciais, como cookies e mecanismos de autenticação
+    allow_methods=["GET", "POST"], # Quais métodos são permitidos
+    allow_headers=["Authorization", "Content-Type", "X-Request-ID"], # Quais headers a api aceita
 )
 
 
@@ -105,10 +111,7 @@ app.add_middleware(RequestMiddleware)
 # ROTAS
 # =========================================================
 
-app.include_router(
-    api_router,
-    prefix="/api/v1"
-)
+app.include_router(router)
 
 @app.get("/health")
 async def health():
